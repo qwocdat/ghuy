@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="vi" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Panel - Bio Ghuy</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Inter', 'sans-serif'] },
+          colors: {
+            darkBg: '#090a0f',
+            darkCard: '#12131a',
+            darkBorder: 'rgba(255, 255, 255, 0.1)',
+            accentBlue: '#6366f1'
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body { background-color: #090a0f; color: #f4f4f5; }
+    input, textarea, select {
+      background-color: rgba(255, 255, 255, 0.04) !important;
+      border: 1px solid rgba(255, 255, 255, 0.1) !important;
+      color: #ffffff !important;
+      outline: none !important;
+    }
+    input:focus, textarea:focus {
+      border-color: #6366f1 !important;
+    }
+  </style>
+</head>
+<body class="min-h-screen p-4 sm:p-8">
+
+  <!-- Modal Đăng Nhập -->
+  <div id="loginModal" class="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-4">
+    <div class="bg-darkCard border border-darkBorder rounded-3xl p-8 max-w-md w-full space-y-6 text-center shadow-2xl">
+      <div class="w-16 h-16 bg-indigo-600/20 text-indigo-400 rounded-full flex items-center justify-center mx-auto text-2xl font-bold border border-indigo-500/30">
+        🔒
+      </div>
+      <div>
+        <h2 class="text-2xl font-bold text-white">Xác Thực Quản Trị</h2>
+        <p class="text-xs text-zinc-400 mt-1">Nhập mật khẩu Admin để truy cập hệ thống quản lý Bio</p>
+      </div>
+      <form onsubmit="handleLogin(event)" class="space-y-4">
+        <input type="password" id="adminPassword" placeholder="Nhập mật khẩu..." required class="w-full px-4 py-3 rounded-xl text-sm font-mono text-center">
+        <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-3 rounded-xl transition shadow-lg shadow-indigo-600/30">
+          Xác Nhận Đăng Nhập
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Bảng Quản Trị Chính (Ẩn cho tới khi đăng nhập) -->
+  <div id="adminApp" class="hidden max-w-4xl mx-auto space-y-8">
+    
+    <!-- Top Header -->
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-darkBorder pb-6">
+      <div>
+        <h1 class="text-2xl font-extrabold text-white flex items-center gap-2">
+          <span class="w-3 h-3 rounded-full bg-indigo-500 animate-pulse"></span>
+          Quản Lý Bio Trang Web
+        </h1>
+        <p class="text-xs text-zinc-400 mt-1">Dự án Firebase: <span class="text-indigo-400 font-mono">quocdat-396fe</span></p>
+      </div>
+      <div class="flex items-center gap-3">
+        <a href="index.html" target="_blank" class="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-xs font-semibold rounded-xl border border-darkBorder text-zinc-200 transition">
+          Xem Trang Bio Live ↗
+        </a>
+        <button onclick="logout()" class="px-4 py-2 bg-red-950/60 hover:bg-red-900/60 text-red-400 text-xs font-semibold rounded-xl border border-red-900/40 transition">
+          Đăng Xuất
+        </button>
+      </div>
+    </div>
+
+    <!-- 1. Cấu hình Thông tin Cá nhân & Media -->
+    <div class="bg-darkCard p-6 rounded-3xl border border-darkBorder space-y-6">
+      <h2 class="text-lg font-bold text-white border-b border-darkBorder pb-3">1. Thông Tin Cá Nhân & Media Background</h2>
+      
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-xs font-semibold text-zinc-400 mb-2">Tên hiển thị (Tự động gõ chữ)</label>
+          <input type="text" id="cfgName" placeholder="VD: Ghuy" class="w-full p-3 rounded-xl text-sm">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-zinc-400 mb-2">Tiểu sử (Bio ngắn)</label>
+          <input type="text" id="cfgBio" placeholder="VD: xin chào!" class="w-full p-3 rounded-xl text-sm">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-zinc-400 mb-2">Link/Tên file Avatar GIF</label>
+          <input type="text" id="cfgAvatar" placeholder="avatar.gif" class="w-full p-3 rounded-xl text-sm font-mono">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-zinc-400 mb-2">Link/Tên file Video Nhạc (Audio)</label>
+          <input type="text" id="cfgAudio" placeholder="tiktok_audio.mp3" class="w-full p-3 rounded-xl text-sm font-mono">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-zinc-400 mb-2">Link/Tên file Video Bìa Card (anhbia.mp4)</label>
+          <input type="text" id="cfgBanner" placeholder="anhbia.mp4" class="w-full p-3 rounded-xl text-sm font-mono">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-zinc-400 mb-2">Link/Tên file Video Nền Nửa Dưới Nhạc</label>
+          <input type="text" id="cfgMusicBg" placeholder="backgroundnhac.mp4" class="w-full p-3 rounded-xl text-sm font-mono">
+        </div>
+      </div>
+
+      <button onclick="saveProfileConfig()" id="btnSaveProfile" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-3 rounded-xl text-sm transition shadow-lg shadow-indigo-600/20">
+        Lưu Thông Tin Cá Nhân
+      </button>
+    </div>
+
+    <!-- 2. Quản lý Mạng Xã Hội -->
+    <div class="bg-darkCard p-6 rounded-3xl border border-darkBorder space-y-6">
+      <h2 class="text-lg font-bold text-white border-b border-darkBorder pb-3">2. Mạng Xã Hội (Social Links)</h2>
+      
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-xs font-semibold text-zinc-400 mb-2">Telegram URL</label>
+          <input type="url" id="socialTelegram" placeholder="https://t.me/username" class="w-full p-3 rounded-xl text-sm font-mono">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-zinc-400 mb-2">GitHub URL</label>
+          <input type="url" id="socialGithub" placeholder="https://github.com/username" class="w-full p-3 rounded-xl text-sm font-mono">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-zinc-400 mb-2">Facebook URL</label>
+          <input type="url" id="socialFacebook" placeholder="https://facebook.com/username" class="w-full p-3 rounded-xl text-sm font-mono">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-zinc-400 mb-2">Discord URL</label>
+          <input type="url" id="socialDiscord" placeholder="https://discord.gg/invite" class="w-full p-3 rounded-xl text-sm font-mono">
+        </div>
+      </div>
+
+      <button onclick="saveSocialsConfig()" id="btnSaveSocials" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-3 rounded-xl text-sm transition shadow-lg shadow-indigo-600/20">
+        Lưu Liên Kết Mạng Xã Hội
+      </button>
+    </div>
+
+    <!-- 3. Quản lý Danh Sách Nút Bấm / Nút Chuyển Trang (Links List) -->
+    <div class="bg-darkCard p-6 rounded-3xl border border-darkBorder space-y-6">
+      <div class="flex justify-between items-center border-b border-darkBorder pb-3">
+        <h2 class="text-lg font-bold text-white">3. Quản Lý Nút Bấm Chuyển Trang (Links List)</h2>
+        <span id="linkCountBadge" class="text-xs bg-indigo-950 text-indigo-400 border border-indigo-800 px-3 py-1 rounded-full font-mono">0 links</span>
+      </div>
+
+      <!-- Form Thêm Nút Mới -->
+      <form onsubmit="handleAddLink(event)" class="bg-zinc-900/60 p-4 rounded-2xl border border-darkBorder space-y-4">
+        <h3 class="text-xs font-semibold text-zinc-300 uppercase tracking-wider">Thêm nút bấm mới</h3>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div>
+            <label class="block text-[11px] text-zinc-400 mb-1">Tiêu đề hiển thị</label>
+            <input type="text" id="newLinkTitle" placeholder="VD: Tải File Custom ROM" required class="w-full p-2.5 rounded-xl text-xs">
+          </div>
+          <div>
+            <label class="block text-[11px] text-zinc-400 mb-1">Liên kết URL</label>
+            <input type="url" id="newLinkUrl" placeholder="https://example.com/file" required class="w-full p-2.5 rounded-xl text-xs font-mono">
+          </div>
+          <div>
+            <label class="block text-[11px] text-zinc-400 mb-1">Class Icon FontAwesome</label>
+            <input type="text" id="newLinkIcon" placeholder="fa-solid fa-download" required class="w-full p-2.5 rounded-xl text-xs font-mono">
+          </div>
+        </div>
+        <button type="submit" class="w-full bg-zinc-800 hover:bg-zinc-700 text-white font-semibold py-2.5 rounded-xl text-xs transition border border-darkBorder">
+          + Thêm Nút Bấm Này Vào Bio
+        </button>
+      </form>
+
+      <!-- Danh sách Nút Bấm Hiện Có -->
+      <div id="adminLinksList" class="space-y-3 pt-2">
+        <div class="text-center py-6 text-xs text-zinc-500">Đang tải danh sách nút bấm từ Firebase...</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Firebase Script Import -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getFirestore, doc, getDoc, setDoc, collection, addDoc, onSnapshot, deleteDoc, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    // Cấu hình Firebase dự án quocdat-396fe
+    const firebaseConfig = {
+      apiKey: "AIzaSyAUuV5euNNLHE2Cf6tXzUHV-ChKwNF593Y",
+      authDomain: "quocdat-396fe.firebaseapp.com",
+      databaseURL: "https://quocdat-396fe-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "quocdat-396fe",
+      storageBucket: "quocdat-396fe.firebasestorage.app",
+      messagingSenderId: "685476439350",
+      appId: "1:685476439350:web:949054ecba7f0a0c383f97"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // Mật khẩu cố định
+    const ADMIN_PASS = "concaccon";
+
+    // Kiểm tra Đăng nhập
+    window.handleLogin = function(e) {
+      e.preventDefault();
+      const pwd = document.getElementById("adminPassword").value;
+      if (pwd === ADMIN_PASS) {
+        sessionStorage.setItem("bio_admin_logged", "true");
+        document.getElementById("loginModal").classList.add("hidden");
+        document.getElementById("adminApp").classList.remove("hidden");
+        loadAdminData();
+      } else {
+        alert("Sai mật khẩu Admin!");
+      }
+    };
+
+    window.logout = function() {
+      sessionStorage.removeItem("bio_admin_logged");
+      location.reload();
+    };
+
+    // Auto Check Login Session
+    if (sessionStorage.getItem("bio_admin_logged") === "true") {
+      document.getElementById("loginModal").classList.add("hidden");
+      document.getElementById("adminApp").classList.remove("hidden");
+      loadAdminData();
+    }
+
+    // Tải dữ liệu từ Firestore
+    async function loadAdminData() {
+      // 1. Config Profile
+      const docSnap = await getDoc(doc(db, "bio_config", "main"));
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        document.getElementById("cfgName").value = data.name || "Ghuy";
+        document.getElementById("cfgBio").value = data.bio || "xin chào!";
+        document.getElementById("cfgAvatar").value = data.avatar || "avatar.gif";
+        document.getElementById("cfgAudio").value = data.audio || "tiktok_audio.mp3";
+        document.getElementById("cfgBanner").value = data.banner || "anhbia.mp4";
+        document.getElementById("cfgMusicBg").value = data.musicBg || "backgroundnhac.mp4";
+
+        if (data.socials) {
+          document.getElementById("socialTelegram").value = data.socials.telegram || "";
+          document.getElementById("socialGithub").value = data.socials.github || "";
+          document.getElementById("socialFacebook").value = data.socials.facebook || "";
+          document.getElementById("socialDiscord").value = data.socials.discord || "";
+        }
+      }
+
+      // 2. Realtime Links Listener
+      const q = query(collection(db, "bio_links"), orderBy("createdAt", "asc"));
+      onSnapshot(q, (snapshot) => {
+        const container = document.getElementById("adminLinksList");
+        document.getElementById("linkCountBadge").textContent = `${snapshot.size} links`;
+
+        if (snapshot.empty) {
+          container.innerHTML = `<div class="text-center py-6 text-xs text-zinc-500">Chưa có nút bấm nào. Hãy thêm ở trên!</div>`;
+          return;
+        }
+
+        let html = "";
+        snapshot.forEach((docItem) => {
+          const l = docItem.data();
+          html += `
+            <div class="bg-zinc-900/80 p-3.5 rounded-2xl border border-darkBorder flex items-center justify-between gap-3 text-xs">
+              <div class="flex items-center gap-3 overflow-hidden">
+                <i class="${l.icon} text-indigo-400 text-base"></i>
+                <div class="truncate">
+                  <div class="font-bold text-white truncate">${l.title}</div>
+                  <div class="text-zinc-500 font-mono text-[11px] truncate">${l.url}</div>
+                </div>
+              </div>
+              <button onclick="deleteLink('${docItem.id}')" class="px-3 py-1.5 bg-red-950/80 hover:bg-red-900 text-red-400 rounded-xl transition border border-red-900/40 shrink-0">
+                Xóa
+              </button>
+            </div>
+          `;
+        });
+        container.innerHTML = html;
+      });
+    }
+
+    // Lưu Profile Info
+    window.saveProfileConfig = async function() {
+      const btn = document.getElementById("btnSaveProfile");
+      btn.disabled = true;
+      btn.innerText = "Đang lưu...";
+
+      try {
+        await setDoc(doc(db, "bio_config", "main"), {
+          name: document.getElementById("cfgName").value.trim(),
+          bio: document.getElementById("cfgBio").value.trim(),
+          avatar: document.getElementById("cfgAvatar").value.trim(),
+          audio: document.getElementById("cfgAudio").value.trim(),
+          banner: document.getElementById("cfgBanner").value.trim(),
+          musicBg: document.getElementById("cfgMusicBg").value.trim()
+        }, { merge: true });
+
+        alert("Đã lưu thông tin cá nhân!");
+      } catch (err) {
+        alert("Lỗi khi lưu: " + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerText = "Lưu Thông Tin Cá Nhân";
+      }
+    };
+
+    // Lưu Social Links
+    window.saveSocialsConfig = async function() {
+      const btn = document.getElementById("btnSaveSocials");
+      btn.disabled = true;
+      btn.innerText = "Đang lưu...";
+
+      try {
+        await setDoc(doc(db, "bio_config", "main"), {
+          socials: {
+            telegram: document.getElementById("socialTelegram").value.trim(),
+            github: document.getElementById("socialGithub").value.trim(),
+            facebook: document.getElementById("socialFacebook").value.trim(),
+            discord: document.getElementById("socialDiscord").value.trim()
+          }
+        }, { merge: true });
+
+        alert("Đã lưu liên kết Mạng Xã Hội!");
+      } catch (err) {
+        alert("Lỗi khi lưu: " + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerText = "Lưu Liên Kết Mạng Xã Hội";
+      }
+    };
+
+    // Thêm Link Mới
+    window.handleAddLink = async function(e) {
+      e.preventDefault();
+      const title = document.getElementById("newLinkTitle").value.trim();
+      const url = document.getElementById("newLinkUrl").value.trim();
+      const icon = document.getElementById("newLinkIcon").value.trim();
+
+      try {
+        await addDoc(collection(db, "bio_links"), {
+          title,
+          url,
+          icon,
+          createdAt: serverTimestamp()
+        });
+
+        document.getElementById("newLinkTitle").value = "";
+        document.getElementById("newLinkUrl").value = "";
+        document.getElementById("newLinkIcon").value = "fa-solid fa-download";
+      } catch (err) {
+        alert("Lỗi khi thêm link: " + err.message);
+      }
+    };
+
+    // Xóa Link
+    window.deleteLink = async function(docId) {
+      if (confirm("Bạn chắc chắn muốn xóa nút bấm này?")) {
+        await deleteDoc(doc(db, "bio_links", docId));
+      }
+    };
+  </script>
+</body>
+</html>

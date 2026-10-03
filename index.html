@@ -599,39 +599,9 @@
         </div>
       </div>
 
-      <!-- Danh Sách Link Share -->
-      <div class="links-list">
-        <a href="#" target="_blank" class="link-item">
-          <div class="link-info">
-            <i class="fa-solid fa-download link-icon"></i>
-            <span>Tải File Custom ROM / Mod</span>
-          </div>
-          <i class="fa-solid fa-arrow-up-right-from-square arrow-icon"></i>
-        </a>
-
-        <a href="#" target="_blank" class="link-item">
-          <div class="link-info">
-            <i class="fa-solid fa-code link-icon"></i>
-            <span>Project Web Interface</span>
-          </div>
-          <i class="fa-solid fa-arrow-up-right-from-square arrow-icon"></i>
-        </a>
-
-        <a href="#" target="_blank" class="link-item">
-          <div class="link-info">
-            <i class="fa-solid fa-layer-group link-icon"></i>
-            <span>Kênh Cập Nhật Telegram</span>
-          </div>
-          <i class="fa-solid fa-arrow-up-right-from-square arrow-icon"></i>
-        </a>
-
-        <a href="#" target="_blank" class="link-item">
-          <div class="link-info">
-            <i class="fa-solid fa-globe link-icon"></i>
-            <span>Trang Chủ DigitalsMod</span>
-          </div>
-          <i class="fa-solid fa-arrow-up-right-from-square arrow-icon"></i>
-        </a>
+      <!-- Danh Sách Link Share (TỰ ĐỘNG ĐỒNG BỘ TỪ FIREBASE) -->
+      <div class="links-list" id="firebase-links">
+        <div style="font-size: 12px; color: #71717a; padding: 10px;">Đang tải danh sách nút từ Firebase...</div>
       </div>
 
       <div class="footer">
@@ -640,6 +610,52 @@
     </div>
   </div>
 
+  <!-- FIREBASE INTEGRATION CHO NÚT BẤM -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getFirestore, collection, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    // Cấu hình Firebase quocdat-396fe
+    const firebaseConfig = {
+      apiKey: "AIzaSyAUuV5euNNLHE2Cf6tXzUHV-ChKwNF593Y",
+      authDomain: "quocdat-396fe.firebaseapp.com",
+      databaseURL: "https://quocdat-396fe-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "quocdat-396fe",
+      storageBucket: "quocdat-396fe.firebasestorage.app",
+      messagingSenderId: "685476439350",
+      appId: "1:685476439350:web:949054ecba7f0a0c383f97"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // Lắng nghe Realtime Danh Sách Nút Bấm từ Firebase
+    const q = query(collection(db, "bio_links"), orderBy("createdAt", "asc"));
+    onSnapshot(q, (snapshot) => {
+      const container = document.getElementById("firebase-links");
+      if (snapshot.empty) {
+        container.innerHTML = `<div style="font-size: 12px; color: #71717a; padding: 10px;">Chưa có nút bấm nào. Hãy thêm trong admin.html</div>`;
+        return;
+      }
+
+      let html = "";
+      snapshot.forEach((docItem) => {
+        const l = docItem.data();
+        html += `
+          <a href="${l.url}" target="_blank" class="link-item">
+            <div class="link-info">
+              <i class="${l.icon} link-icon"></i>
+              <span>${l.title}</span>
+            </div>
+            <i class="fa-solid fa-arrow-up-right-from-square arrow-icon"></i>
+          </a>
+        `;
+      });
+      container.innerHTML = html;
+    });
+  </script>
+
+  <!-- LOGIC NHẠC, CANVAS TUẾT VÀ HIỆU ỨNG GÕ CHỮ -->
   <script>
     const audio = document.getElementById('audio-player');
     const playIcon = document.getElementById('play-icon');
@@ -656,24 +672,20 @@
 
     function typeLoop() {
       if (!isDeleting) {
-        // Đang gõ ra từng ký tự
         typeIndex++;
         typedEl.textContent = NAME_TEXT.substring(0, typeIndex);
 
         if (typeIndex === NAME_TEXT.length) {
-          // Gõ xong -> dừng 1.6s rồi bắt đầu xoá
           isDeleting = true;
           setTimeout(typeLoop, 1600);
           return;
         }
         setTimeout(typeLoop, 180);
       } else {
-        // Đang xoá từng ký tự
         typeIndex--;
         typedEl.textContent = NAME_TEXT.substring(0, typeIndex);
 
         if (typeIndex === 0) {
-          // Xoá hết -> dừng 0.5s rồi gõ lại
           isDeleting = false;
           setTimeout(typeLoop, 500);
           return;
